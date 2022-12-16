@@ -6,10 +6,12 @@ export default function Bill() {
   const [verified, setVerified] = useState();
   const [username, setUsername] = useState("");
   const [data, setData] = useState({
+    bill_id: "",
     consumer_id: "",
     units: "",
-    amount: "",
+    current_reading: "",
     due_date: "",
+    tax: "",
   });
   const verify = () => {
     if (consumerid == "") {
