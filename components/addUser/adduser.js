@@ -25,21 +25,37 @@ export default function Adduser() {
       setError("");
       setuploading(true);
       console.log(user);
+
+      axios({
+        method: "post",
+        url: "https://dbms-api.vercel.app/users",
+        data: user,
+      })
+        .then((e) => {
+          console.log(e);
+          setuploading(false);
+          setError("User added succesfully 🤩");
+        })
+        .catch((e) => {
+          console.log(e);
+          setError("Something went wrong!");
+        });
     }
+  };
+  const [users, setUsers] = useState([]);
+  const getAllUsers = () => {
     axios({
-      method: "post",
-      url: "https://dbms-api.vercel.app/users",
-      data: user,
+      method: "get",
+      url: `https://dbms-api.vercel.app/users/`,
+      responseType: "json",
     })
       .then((e) => {
-        console.log(e);
-        setuploading(false);
-        setError("User added succesfully 🤩");
+        setUsers(e.data);
       })
       .catch((e) => {
         console.log(e);
-        setError("Something went wrong!");
       });
+    console.log(users);
   };
   return (
     <div className="p-16 ">
@@ -119,10 +135,35 @@ export default function Adduser() {
               >
                 Add User
               </button>
-              <button className="text-sm button-off ml-4 hover:opacity-80 transition-all rounded-sm  w-40 p-2 text-white font-medium bg-blue-400 dark-blue  mt-1">
+              <button
+                onClick={getAllUsers}
+                className="text-sm button-off ml-4 hover:opacity-80 transition-all rounded-sm  w-40 p-2 text-white font-medium bg-blue-400 dark-blue  mt-1"
+              >
                 View All Users
               </button>
             </div>
+          </div>
+          <div className="mt-10">
+            {users != [] ? (
+              <div className="grid p-2 bg-white grid-cols-4">
+                <p className="text font-medium">Consumer ID</p>
+                <p className="text font-medium">Username</p>
+                <p className="text font-medium">Address</p>
+                <p className="text font-medium">Phone</p>
+              </div>
+            ) : (
+              ""
+            )}
+            {users.map((item, i) => {
+              return (
+                <div key={i} className="p-2 grid grid-cols-4">
+                  <p className=" font-medium">{item.consumer_id}</p>
+                  <p className=" font-medium">{item.username}</p>
+                  <p className=" font-medium">{item.address}</p>
+                  <p className=" font-medium">{item.phone}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

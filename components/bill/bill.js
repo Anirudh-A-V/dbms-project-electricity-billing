@@ -1,16 +1,20 @@
 import axios from "axios";
 import { useState } from "react";
+import Loader from "../loader/loader";
 import { IoIosCheckmarkCircle } from "react-icons/io";
 export default function Bill() {
   const [consumerid, setConsumerid] = useState();
   const [verified, setVerified] = useState();
   const [username, setUsername] = useState("");
+  const [error, setError] = useState("");
+  const [uploading, setuploading] = useState(false);
   const [data, setData] = useState({
     bill_id: "",
     consumer_id: "",
-    units: "",
+
     current_reading: "",
     due_date: "",
+    unit_charge: "",
     tax: "",
   });
   const verify = () => {
@@ -23,28 +27,71 @@ export default function Bill() {
       responseType: "json",
     }).then(function (response) {
       console.log(response.data);
-      let data = response.data;
+
+      let u_data = response.data;
       let verified = false;
       setVerified(false);
-      for (let i = 0; i < data.length; i++) {
+      for (let i = 0; i < u_data.length; i++) {
         console.log(
-          data[i].consumer_id,
+          u_data[i].consumer_id,
           consumerid,
-          data[i].consumer_id == consumerid
+          u_data[i].consumer_id == consumerid
         );
-        if (data[i].consumer_id == consumerid) {
+        if (u_data[i].consumer_id == consumerid) {
           verified = true;
+          setData({ ...data, consumer_id: consumerid });
           setVerified(true);
-          setUsername(data[i].username);
+          setUsername(u_data[i].username);
           break;
         }
       }
       console.log(verified);
     });
   };
-  const submitBill = () => {};
+  var round = Math.round;
+  const submitBill = () => {
+    if (data.current_reading.length == 0) {
+      setError("Enter Current reading value");
+    } else if (data.unit_charge.length == 0) {
+      setError("Enter unit charge");
+    } else if (data.tax.length == 0) {
+      setError("Enter tax amount");
+    } else if (data.due_date.length < 5) {
+      setError("Add Due date");
+    } else {
+      let totalprice = data.unit_charge * data.current_reading;
+
+      let submitdata = {
+        consumer_id: round(data.consumer_id),
+        units: round(data.current_reading),
+        current_reading: totalprice,
+        due_date: data.due_date,
+        tax: round(data.tax),
+      };
+      setError("");
+      setuploading(true);
+      console.log(submitdata);
+      axios({
+        method: "post",
+        url: "https://dbms-api.vercel.app/bills",
+        data: submitdata,
+      })
+        .then((e) => {
+          console.log(e);
+          setuploading(false);
+          setError("Bill added succesfully 🤩");
+        })
+        .catch((e) => {
+          console.log(e);
+          setuploading(false);
+          setError("Something went wrong!");
+        });
+    }
+  };
+
   return (
     <div className="p-16 ">
+      {uploading ? <Loader text="Adding new bill" /> : ""}
       <h2 className="font-bold text-2xl">Add User Bills</h2>
       <div className="line w-full mt-3"></div>
       <div className="p-6">
@@ -86,7 +133,9 @@ export default function Bill() {
               <div className="">
                 <p className="text text-lg font-medium">Current Reading</p>
                 <input
-                  onChange={(e) => setData({ ...data, units: e.target.value })}
+                  onChange={(e) =>
+                    setData({ ...data, current_reading: e.target.value })
+                  }
                   type="text"
                   className="input-box mt-1 w-4/6 outline-none p-2 rounded"
                   placeholder="Current Reading"
@@ -95,7 +144,9 @@ export default function Bill() {
               <div className="">
                 <p className="text text-lg font-medium">Unit charge</p>
                 <input
-                  onChange={(e) => setData({ ...data, units: e.target.value })}
+                  onChange={(e) =>
+                    setData({ ...data, unit_charge: e.target.value })
+                  }
                   type="text"
                   className="input-box mt-1 w-4/6 outline-none p-2 rounded"
                   placeholder="Per unit price"
@@ -104,7 +155,7 @@ export default function Bill() {
               <div className="">
                 <p className="text text-lg font-medium">Tax</p>
                 <input
-                  onChange={(e) => setData({ ...data, units: e.target.value })}
+                  onChange={(e) => setData({ ...data, tax: e.target.value })}
                   type="text"
                   className="input-box mt-1 w-4/6 outline-none p-2 rounded"
                   placeholder="Tax amount"
@@ -113,13 +164,26 @@ export default function Bill() {
               <div className="">
                 <p className="text text-lg font-medium">Expiry Date</p>
                 <input
+                  onChange={(e) =>
+                    setData({ ...data, due_date: e.target.value })
+                  }
                   type="date"
                   className="input-box mt-1 w-4/6 outline-none p-2 rounded"
                   placeholder="Current Reading"
                 />
               </div>{" "}
               <div className=""></div>
-              <button className="text-sm hover:opacity-80 transition-all rounded-sm  w-40 p-2 text-white font-medium bg-blue-400 dark-blue  mt-4">
+              {error ? (
+                <div className=" col-span-2">
+                  <p className="text-red-500">{error}</p>
+                </div>
+              ) : (
+                ""
+              )}
+              <button
+                onClick={submitBill}
+                className="text-sm hover:opacity-80 transition-all rounded-sm  w-40 p-2 text-white font-medium bg-blue-400 dark-blue  mt-4"
+              >
                 Generate Bill
               </button>
             </div>
