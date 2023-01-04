@@ -60,13 +60,15 @@ export default function Bill() {
       setError("Add Due date");
     } else {
       let totalprice = data.unit_charge * data.current_reading;
-
+      let currDate = new Date(data.due_date);
       let submitdata = {
         consumer_id: round(data.consumer_id),
         units: round(data.current_reading),
         current_reading: totalprice,
         due_date: data.due_date,
         tax: round(data.tax),
+        month: currDate.getMonth(),
+        year: currDate.getFullYear(),
       };
       setError("");
       setuploading(true);

@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useState } from "react";
 import Loader from "../loader/loader";
-
+import { MdDelete } from "react-icons/md";
 export default function Adduser() {
   const [user, setUser] = useState({
     consumer_id: "",
@@ -56,6 +56,21 @@ export default function Adduser() {
         console.log(e);
       });
     console.log(users);
+  };
+  const deleteUser = (id) => {
+    console.log(id);
+    axios({
+      method: "delete",
+      url: `https://dbms-api.vercel.app/users/${id}`,
+      responseType: "json",
+    })
+      .then((response) => {
+        console.log(response);
+        getAllUsers();
+      })
+      .catch((e) => {
+        console.log(e);
+      });
   };
   return (
     <div className="p-16 ">
@@ -145,22 +160,31 @@ export default function Adduser() {
           </div>
           <div className="mt-10">
             {users != [] ? (
-              <div className="grid p-2 bg-white grid-cols-4">
+              <div className="grid p-2 bg-white grid-cols-5">
                 <p className="text font-medium">Consumer ID</p>
                 <p className="text font-medium">Username</p>
                 <p className="text font-medium">Address</p>
-                <p className="text font-medium">Phone</p>
+                <p className="text font-medium">Phone</p>{" "}
+                <p className="text font-medium"></p>
               </div>
             ) : (
               ""
             )}
             {users.map((item, i) => {
               return (
-                <div key={i} className="p-2 grid grid-cols-4">
+                <div key={i} className="p-2 grid grid-cols-5">
                   <p className=" font-medium">{item.consumer_id}</p>
                   <p className=" font-medium">{item.username}</p>
                   <p className=" font-medium">{item.address}</p>
-                  <p className=" font-medium">{item.phone}</p>
+                  <p className=" font-medium">{item.phone}</p>{" "}
+                  <button
+                    className="ml-3 text-xl"
+                    onClick={() => {
+                      deleteUser(item.consumer_id);
+                    }}
+                  >
+                    <MdDelete />
+                  </button>
                 </div>
               );
             })}
